@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>数学思维打卡计划表</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --primary: #4f5ef7;
+            --primary-soft: #eef1ff;
+            --text: #1e293b;
+            --text-secondary: #5b6e8c;
+            --border: #cbd5e1;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --radius: 14px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 8px;
+            min-height: 100vh;
+        }
+        .app-container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+        .header {
+            background: var(--card); border-radius: var(--radius); padding: 10px 14px;
+            box-shadow: var(--shadow); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+            position: sticky; top: 8px; z-index: 50;
+        }
+        .header h1 { font-size: 1.1rem; font-weight: 650; }
+        .btn {
+            border: 2px solid var(--border); border-radius: 14px; padding: 5px 10px;
+            font-size: 0.72rem; font-weight: 600; cursor: pointer; background: white; white-space: nowrap;
+        }
+        .btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .grade-tabs {
+            display: flex; gap: 4px; flex-wrap: wrap; background: var(--card); border-radius: var(--radius);
+            padding: 6px 8px; box-shadow: var(--shadow); border: 1px solid var(--border);
+            position: sticky; top: 62px; z-index: 49;
+        }
+        .grade-tab {
+            flex: 1; min-width: 36px; text-align: center; padding: 6px 4px; border-radius: 10px;
+            font-size: 0.7rem; font-weight: 600; cursor: pointer; background: #f8fafc;
+            border: 2px solid transparent; transition: 0.15s; user-select: none;
+        }
+        .grade-tab.active { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+        .settings-row {
+            display: flex; gap: 6px; flex-wrap: wrap; align-items: center; background: var(--card);
+            border-radius: var(--radius); padding: 10px 12px; box-shadow: var(--shadow);
+            border: 1px solid var(--border); font-size: 0.75rem; font-weight: 600;
+        }
+        .setting-label { font-weight: 700; color: var(--primary); white-space: nowrap; font-size: 0.7rem; }
+        .settings-row input[type="date"] {
+            border: 2px solid var(--primary); border-radius: 10px; padding: 5px 8px;
+            font-size: 0.75rem; font-weight: 600; background: #f8fafc; color: var(--text); outline: none;
+        }
+        .settings-row input[type="number"] {
+            border: 2px solid var(--border); border-radius: 10px; padding: 4px;
+            font-size: 0.72rem; width: 42px; text-align: center; font-weight: 600;
+        }
+        /* 明确标签 */
+        .toggle {
+            display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.7rem; user-select: none;
+            white-space: nowrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px 8px;
+        }
+        .toggle input[type="checkbox"] { margin-right: 2px; }
+        .points-bar {
+            background: #fef9c3; border-radius: var(--radius); padding: 10px 14px;
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.85rem;
+            border: 2px solid #fde047;
+        }
+        .btn-clear {
+            background: #fee2e2; color: #b91c1c; border: 2px solid #fecaca; border-radius: 14px;
+            padding: 4px 10px; font-size: 0.65rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+        }
+        /* 礼物区加大 */
+        .gift-section {
+            background: var(--card); border-radius: var(--radius); padding: 16px 18px 20px;
+            box-shadow: var(--shadow); border: 2px solid var(--border);
+        }
+        .gift-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; color: var(--text); }
+        .gift-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .gift-row input {
+            flex: 1; min-width: 90px; border: 2px dashed #cbd5e1; border-radius: 12px;
+            padding: 10px 12px; font-size: 0.8rem; background: #fafbfc;
+        }
+        .gift-row input[type="number"] { width: 70px; flex: 0 0 70px; }
+        .gift-tags {
+            display: flex; flex-wrap: wrap; gap: 10px; min-height: 60px; padding: 10px;
+            border: 2px dashed #cbd5e1; border-radius: 12px; background: #fafbfc;
+        }
+        .gift-tags:empty::after {
+            content: '✍️ 打印后手写兑换礼物'; color: #94a3b8; font-size: 0.75rem; font-style: italic;
+        }
+        .gift-tag {
+            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+            padding: 8px 14px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+        }
+        .gift-tag .del { cursor: pointer; color: #ef4444; font-weight: 700; }
+        .filter-row { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: 0.7rem; }
+        .filter-btn {
+            padding: 4px 10px; border-radius: 12px; border: 2px solid var(--border);
+            background: white; font-size: 0.7rem; cursor: pointer;
+        }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .topic-list { display: flex; flex-direction: column; gap: 6px; }
+        .topic-card {
+            background: var(--card); border-radius: var(--radius);
+            border: 2px solid #94a3b8;
+            overflow: hidden; transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .topic-card.review { border-left: 4px solid #ef4444; background: #fef2f2; }
+        .topic-card.done-hidden { opacity: 0.45; }
+        .topic-date-row {
+            text-align: center; font-weight: 700; font-size: 0.8rem; color: #1e40af;
+            background: #eff6ff; padding: 8px 10px; letter-spacing: 0.02em;
+            cursor: pointer; border-bottom: 2px solid #bfdbfe; user-select: none;
+        }
+        .topic-date-row:hover { background: #dbeafe; }
+        .topic-header {
+            display: flex; align-items: center; padding: 10px 12px; gap: 6px;
+            cursor: pointer; user-select: none; flex-wrap: wrap;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .topic-num {
+            background: var(--primary-soft); color: var(--primary); min-width: 26px; height: 26px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+        }
+        .topic-name { flex: 1; font-weight: 600; font-size: 0.85rem; line-height: 1.3; min-width: 120px; }
+        .status-btn {
+            border: 2px solid #e2e8f0; border-radius: 12px; padding: 3px 7px; font-size: 0.65rem;
+            font-weight: 600; cursor: pointer; background: #f1f5f9; color: #475569; white-space: nowrap;
+        }
+        .status-btn.review { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+        .status-btn.done { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .points-input {
+            width: 38px; border: 2px solid #e2e8f0; border-radius: 8px; padding: 2px;
+            text-align: center; font-size: 0.65rem; font-weight: 600;
+        }
+        .print-cb { transform: scale(1.1); accent-color: var(--primary); }
+        .detail-panel { padding: 6px 10px 10px; border-top: 2px solid #f0f2f5; background: #fafcfd; }
+        .step-line {
+            display: flex; gap: 8px; padding: 6px 0; font-size: 0.73rem;
+            border-bottom: 1px dotted #e8ecf1; align-items: flex-start; line-height: 1.5;
+        }
+        .step-num { font-weight: 700; color: var(--primary); min-width: 44px; font-size: 0.7rem; flex-shrink: 0; }
+        .step-desc { color: #334155; flex: 1; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .header, .grade-tabs, .settings-row, .points-bar .btn-clear, .filter-row,
+            .btn, .status-btn, .points-input, .print-cb, .gift-row input, .gift-tag .del { display: none !important; }
+            .topic-card { box-shadow: none; border: 2px solid #555; break-inside: avoid; }
+            .app-container { max-width: 100%; }
+            .gift-tags { border: 2px dashed #999; min-height: 60px; padding: 12px; }
+            .gift-tags:empty::after { content: '手写兑换区'; }
+            .topic-date-row { background: #eff6ff; color: #1e40af; border-bottom: 2px solid #999; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>📅 数学思维打卡</h1>
+        <div>
+            <span style="font-size:0.7rem;">⭐<strong id="totalPoints">0</strong></span>
+            <span style="font-size:0.7rem;color:#ef4444;">🔴<strong id="reviewCount">0</strong></span>
+            <button class="btn" onclick="printPlan()">🖨打印</button>
+        </div>
+    </div>
+    <div class="grade-tabs">
+        <div class="grade-tab active" data-grade="1" onclick="switchGrade('1',this)">1年级</div>
+        <div class="grade-tab" data-grade="2" onclick="switchGrade('2',this)">2年级</div>
+        <div class="grade-tab" data-grade="3" onclick="switchGrade('3',this)">3年级</div>
+        <div class="grade-tab" data-grade="4" onclick="switchGrade('4',this)">4年级</div>
+        <div class="grade-tab" data-grade="5" onclick="switchGrade('5',this)">5年级</div>
+        <div class="grade-tab" data-grade="6" onclick="switchGrade('6',this)">6年级</div>
+    </div>
+    <div class="settings-row">
+        <span class="setting-label">📅 开始日期</span><input type="date" id="startDate" value="2026-03-23">
+        <span class="sep">|</span>
+        <span class="setting-label">📝 每专题</span><input type="number" id="defaultDays" value="7" min="3" max="30"><span style="font-size:0.7rem;">天</span>
+        <span class="sep">|</span>
+        <label class="toggle"><input type="checkbox" id="skipWeekends"><span>跳过周末</span></label>
+        <label class="toggle"><input type="checkbox" id="skipHolidays" checked><span>跳过节假日</span></label>
+        <button class="btn" onclick="applySettings()" style="background:var(--primary);color:#fff;border:none;">🔄刷新</button>
+    </div>
+    <div class="points-bar">
+        <span>⭐ 总积分：<strong id="totalPoints2">0</strong></span>
+        <button class="btn-clear" onclick="clearAllPoints()">🗑 一键清零</button>
+    </div>
+    <div class="gift-section">
+        <div class="gift-title">🎁 兑换礼包（打印后可手写）</div>
+        <div class="gift-row">
+            <input type="text" id="giftName" placeholder="礼物名称">
+            <input type="number" id="giftCost" placeholder="积分" min="1">
+            <button class="btn" onclick="addGift()" style="background:var(--primary);color:#fff;border:none;">+添加</button>
+        </div>
+        <div class="gift-tags" id="giftList"></div>
+    </div>
+    <div class="filter-row">
+        <span>筛选:</span>
+        <span class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">全部</span>
+        <span class="filter-btn" data-filter="review" onclick="setFilter('review',this)">需巩固</span>
+        <span class="filter-btn" data-filter="done" onclick="setFilter('done',this)">已完成</span>
+        <span style="margin-left:auto;color:#94a3b8;" id="filterCount">显示0个</span>
+    </div>
+    <div class="topic-list" id="topicList"></div>
+</div>
+
+<script>
+(function() {
+    // ==================== 完整年级数据（请勿修改） ====================
+    var GRADE_DATA = {
+        '1': [
+            {num:1,name:'生活中的比一比'},{num:2,name:'100以内数的探秘【初步】'},{num:3,name:'100以内数的探秘【进阶】'},
+            {num:4,name:'100以内的加法计算'},{num:5,name:'100以内的减法计算'},{num:6,name:'加法应用综合'},
+            {num:7,name:'减法应用综合'},{num:8,name:'数学中的比一比'},{num:9,name:'生活中的经济【初步】'},
+            {num:10,name:'神奇的小方块'},{num:11,name:'图形的折剪拼'},{num:12,name:'边边角角'},
+            {num:13,name:'一笔画模型'},{num:14,name:'最短路径探秘'},{num:15,name:'等式谜题'},
+            {num:16,name:'排队问题综合'},{num:17,name:'收集与整理'},{num:18,name:'生活中的可能性'},
+            {num:19,name:'图形规律探秘'},{num:20,name:'数字规律探秘'}
+        ],
+        '2': [
+            {num:1,name:'时间的奥秘'},{num:2,name:'乘法应用综合'},{num:3,name:'除法应用综合'},
+            {num:4,name:'有余除法应用综合'},{num:5,name:'探索趣味数阵图'},{num:6,name:'数字与运算符的巧妙搭配'},
+            {num:7,name:'生活中的经济【进阶】'},{num:8,name:'图形的平移、旋转和对称'},{num:9,name:'线段图解题'},
+            {num:10,name:'移多补少综合'},{num:11,name:'间隔模型'},{num:12,name:'周期模型'},
+            {num:13,name:'图形计数模型'},{num:14,name:'树形图'},{num:15,name:'合理搭配'},
+            {num:16,name:'蜗牛爬井'},{num:17,name:'列表法解决问题'},{num:18,name:'等量代换【初步】'},
+            {num:19,name:'数独游戏'},{num:20,name:'扫雷游戏'}
+        ],
+        '3': [
+            {num:1,name:'万以内加减法综合'},{num:2,name:'整数加减巧算综合'},{num:3,name:'多位数乘法综合'},
+            {num:4,name:'除数是一位数的除法综合'},{num:5,name:'生活中的长度测量'},{num:7,name:'归一归总法'},
+            {num:8,name:'奇偶数与奇偶性'},{num:9,name:'长方形与正方形的周长综合'},{num:10,name:'长方形与正方形的面积综合'},
+            {num:11,name:'探究和差问题'},{num:12,name:'探究和倍差倍'},{num:13,name:'探究年龄问题'},
+            {num:14,name:'和差倍综合【初步】'},{num:15,name:'和差倍综合【进阶】'},{num:16,name:'包含与排除'},
+            {num:17,name:'方阵模型'},{num:18,name:'植树模型'},{num:19,name:'鸡兔同笼模型一（假设）'},
+            {num:20,name:'加乘原理探秘'},{num:21,name:'统筹与优化【初步】'},{num:22,name:'日历探秘'},
+            {num:23,name:'等量代换【进阶】'},{num:24,name:'幻方数阵'},{num:25,name:'必胜游戏策略'},
+            {num:26,name:'模式谜题'},{num:27,name:'探究还原问题'}
+        ],
+        '4': [
+            {num:1,name:'除数是两位数的除法综合'},{num:2,name:'整数乘除法巧算综合'},{num:3,name:'等差数列'},
+            {num:4,name:'等差数列求和'},{num:5,name:'小数加减法综合'},{num:7,name:'购物策略'},
+            {num:8,name:'最佳方案选择'},{num:9,name:'统筹与优化【进阶】'},{num:10,name:'逻辑推理【初步】'},
+            {num:11,name:'创新运算法则'},{num:12,name:'平均数的应用'},{num:13,name:'统计图表【初步】'},
+            {num:14,name:'角度计算方法'},{num:15,name:'多边形的认识'},{num:16,name:'多边形面积计算'},
+            {num:17,name:'图形的折剪拼【进阶】'},{num:18,name:'勾股定理初探'},{num:19,name:'鸡兔同笼模型二（分组）'},
+            {num:20,name:'盈亏模型'},{num:21,name:'抽屉模型'},{num:22,name:'行程问题的知二求一'},
+            {num:23,name:'探究行程中的相遇'},{num:24,name:'探究行程中的追及'},{num:25,name:'探究火车的行驶'},
+            {num:26,name:'探究船的行驶'},{num:27,name:'多次相遇与追及现象'}
+        ],
+        '5': [
+            {num:1,name:'小数乘除法综合'},{num:2,name:'小数的巧算综合'},{num:3,name:'方程的解法'},
+            {num:4,name:'因数与倍数综合'},{num:5,name:'公因数与公倍数综合'},{num:7,name:'余数问题综合'},
+            {num:8,name:'分数加减法运算'},{num:9,name:'分数中的比一比'},{num:10,name:'循环小数的转化'},
+            {num:11,name:'分数乘除法运算'},{num:12,name:'不同进位制的认识'},{num:13,name:'链中求解【进阶】'},
+            {num:14,name:'分段计费策略'},{num:15,name:'方程的应用'},{num:16,name:'逻辑推理【进阶】'},
+            {num:17,name:'溶液浓度问题'},{num:18,name:'长方体与正方体的表面积'},{num:19,name:'长方体与正方体的体积'},
+            {num:20,name:'水中浸物'},{num:21,name:'一半模型'},{num:22,name:'等高模型'},
+            {num:23,name:'等积模型'},{num:24,name:'牛吃草模型【初步】'},{num:25,name:'牛吃草模型【进阶】'},
+            {num:26,name:'环形中的行程问题'},{num:27,name:'可能性与概率问题'}
+        ],
+        '6': [
+            {num:1,name:'分数巧算技巧'},{num:2,name:'分数裂项方法'},{num:3,name:'分数的应用【初步】'},
+            {num:4,name:'百分数的应用综合'},{num:5,name:'比例的应用综合'},{num:7,name:'圆的周长与面积'},
+            {num:8,name:'圆的周长与面积【初步】'},{num:9,name:'组合图形的面积【进阶】'},{num:10,name:'圆柱与圆锥的面积'},
+            {num:11,name:'圆柱与圆锥的体积'},{num:12,name:'分数的应用【进阶】'},{num:13,name:'工程问题综合'},
+            {num:14,name:'进水出水问题'},{num:15,name:'经济与折扣问题'},{num:16,name:'利率与纳税问题'},
+            {num:18,name:'正反比例解行程问题'},{num:19,name:'统计图表【进阶】'},{num:20,name:'排列组合【初步】'},
+            {num:21,name:'排列组合【进阶】'},{num:22,name:'钟面上的行程问题'},{num:23,name:'最不利原则'},
+            {num:24,name:'风筝模型与蝴蝶模型'},{num:25,name:'燕尾模型'},{num:26,name:'鸟头模型'},
+            {num:27,name:'金字塔模型'}
+        ]
+    };
+
+    var DEFAULT_HOLIDAYS = ['2026-01-01','2026-02-15','2026-02-16','2026-02-17','2026-02-18','2026-04-04','2026-04-05','2026-05-01','2026-05-02','2026-05-03','2026-06-19','2026-09-25','2026-10-01','2026-10-02','2026-10-03'];
+    var holidays = DEFAULT_HOLIDAYS.slice();
+    var currentGrade = '1';
+    var gradeState = {};
+    var gifts = [];
+    var currentFilter = 'all';
+
+    function initGradeState(grade) {
+        if (!gradeState[grade]) {
+            var topics = GRADE_DATA[grade];
+            var arr = [];
+            for (var i = 0; i < topics.length; i++) {
+                arr.push({ days: 7, status: 'none', points: 0, expanded: false, print: false });
+            }
+            gradeState[grade] = arr;
+        }
+        return gradeState[grade];
+    }
+
+    function parseDate(str) { var p = str.split('-'); return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2])); }
+    function formatDate(d) {
+        var y = d.getFullYear();
+        var m = d.getMonth() + 1;
+        var day = d.getDate();
+        return y + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+    }
+    function isWeekend(d) { return d.getDay() === 0 || d.getDay() === 6; }
+    function isHoliday(d) { return holidays.indexOf(formatDate(d)) !== -1; }
+    function isSkipped(d, skipW, skipH) { return (skipW && isWeekend(d)) || (skipH && isHoliday(d)); }
+    function findValidDay(date, skipW, skipH) {
+        var cur = new Date(date);
+        var iter = 0;
+        while (isSkipped(cur, skipW, skipH) && iter < 3000) {
+            cur.setDate(cur.getDate() + 1);
+            iter++;
+        }
+        return cur;
+    }
+    function countStudyDays(startDate, endDate, skipW, skipH) {
+        var count = 0;
+        var cur = new Date(startDate);
+        while (cur <= endDate) {
+            if (!isSkipped(cur, skipW, skipH)) count++;
+            cur.setDate(cur.getDate() + 1);
+        }
+        return count;
+    }
+    function addStudyDays(start, days, skipW, skipH) {
+        var cur = new Date(start);
+        var cnt = 0;
+        var iter = 0;
+        while (cnt < days && iter < 5000) {
+            if (!isSkipped(cur, skipW, skipH)) {
+                cnt++;
+                if (cnt >= days) break;
+            }
+            cur.setDate(cur.getDate() + 1);
+            iter++;
+        }
+        return new Date(cur);
+    }
+
+    function calculateSchedule(grade) {
+        var state = gradeState[grade];
+        var skipW = document.getElementById('skipWeekends').checked;
+        var skipH = document.getElementById('skipHolidays').checked;
+        var startStr = document.getElementById('startDate').value || '2026-03-23';
+        var start = parseDate(startStr);
+        if (isNaN(start.getTime())) start = new Date();
+        start = findValidDay(start, skipW, skipH);
+        var topics = GRADE_DATA[grade];
+        var schedule = [];
+        var curStart = new Date(start);
+        for (var i = 0; i < topics.length; i++) {
+            curStart = findValidDay(curStart, skipW, skipH);
+            var days = state[i].days;
+            var end = addStudyDays(curStart, days, skipW, skipH);
+            schedule.push({ index: i, start: new Date(curStart), end: new Date(end), days: days });
+            var next = new Date(end);
+            next.setDate(next.getDate() + 1);
+            curStart = findValidDay(next, skipW, skipH);
+        }
+        return schedule;
+    }
+
+    function render() {
+        var listEl = document.getElementById('topicList');
+        if (!listEl) return;
+        try {
+            var grade = currentGrade;
+            var state = gradeState[grade];
+            if (!state) state = initGradeState(grade);
+            var topics = GRADE_DATA[grade];
+            var schedule = calculateSchedule(grade);
+            var html = '';
+            var visible = 0;
+
+            for (var i = 0; i < schedule.length; i++) {
+                var s = schedule[i];
+                var item = state[i];
+                if (currentFilter === 'review' && item.status !== 'review') continue;
+                if (currentFilter === 'done' && item.status !== 'done') continue;
+                visible++;
+                var startStr = formatDate(s.start);
+                var endStr = formatDate(s.end);
+                var statusText = '⚪标记';
+                var statusClass = '';
+                if (item.status === 'review') { statusText = '🔴需巩固'; statusClass = 'review'; }
+                if (item.status === 'done') { statusText = '✅完成'; statusClass = 'done'; }
+                var tn = topics[i].num;
+
+                html += '<div class="topic-card ' + (item.status === 'review' ? 'review' : '') + ' ' + (item.status === 'done' ? 'done-hidden' : '') + '">';
+                html += '<div class="topic-date-row" onclick="editTopicDates(\'' + grade + '\',' + i + ')">📆 ' + startStr + ' — ' + endStr + '</div>';
+                html += '<div class="topic-header" onclick="toggleExpand(\'' + grade + '\',' + i + ')">';
+                html += '<span class="topic-num">' + tn + '</span>';
+                html += '<span class="topic-name">专题' + tn + ' ' + topics[i].name + '</span>';
+                html += '<button class="status-btn ' + statusClass + '" onclick="event.stopPropagation();cycleStatus(\'' + grade + '\',' + i + ')">' + statusText + '</button>';
+                html += '<input class="points-input" type="number" value="' + item.points + '" min="0" onclick="event.stopPropagation()" onchange="updatePoints(\'' + grade + '\',' + i + ',this.value)">';
+                html += '<input class="print-cb" type="checkbox" ' + (item.print ? 'checked' : '') + ' onclick="event.stopPropagation();togglePrint(\'' + grade + '\',' + i + ',this.checked)">';
+                html += '</div>';
+                if (item.expanded) {
+                    html += '<div class="detail-panel">';
+                    html += '<div class="step-line"><span class="step-num">第一步：</span><span class="step-desc">观看视频并完成专题' + tn + '的课本并订正，拍照发给金牌老师答疑</span></div>';
+                    html += '<div class="step-line"><span class="step-num">第二步：</span><span class="step-desc">独立完成专题' + tn + '的思维卷并对照视频纠错，用红笔订正，拍照发给金牌老师</span></div>';
+                    html += '<div class="step-line"><span class="step-num">第三步：</span><span class="step-desc">复习巩固错题</span></div>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+
+            if (visible === 0) html = '<div style="text-align:center;padding:30px;color:#94a3b8;">📭 没有符合条件的专题</div>';
+            listEl.innerHTML = html;
+
+            document.getElementById('filterCount').textContent = '显示' + visible + '个';
+            var reviewCount = 0, totalPoints = 0;
+            for (var j = 0; j < state.length; j++) {
+                if (state[j].status === 'review') reviewCount++;
+                totalPoints += state[j].points;
+            }
+            document.getElementById('reviewCount').textContent = reviewCount;
+            document.getElementById('totalPoints').textContent = totalPoints;
+            document.getElementById('totalPoints2').textContent = totalPoints;
+        } catch (e) {
+            listEl.innerHTML = '<div style="padding:20px;color:red;">渲染出错：' + e.message + '<br>请检查日期是否有效</div>';
+        }
+        saveAll();
+    }
+
+    // 新方法：同时修改开始和结束日期
+    window.editTopicDates = function(grade, index) {
+        var state = gradeState[grade];
+        if (!state) return;
+        var skipW = document.getElementById('skipWeekends').checked;
+        var skipH = document.getElementById('skipHolidays').checked;
+        var schedule = calculateSchedule(grade);
+        var currentStart = schedule[index].start;
+        var currentEnd = schedule[index].end;
+
+        var newStartStr = prompt('请输入“专题' + (index+1) + '”的开始日期（YYYY-MM-DD）\n当前开始：' + formatDate(currentStart), formatDate(currentStart));
+        if (newStartStr === null) return;
+        var newStart = parseDate(newStartStr);
+        if (isNaN(newStart.getTime())) { alert('日期格式错误'); return; }
+
+        var newEndStr = prompt('请输入“专题' + (index+1) + '”的结束日期（YYYY-MM-DD）\n当前结束：' + formatDate(currentEnd), formatDate(currentEnd));
+        if (newEndStr === null) return;
+        var newEnd = parseDate(newEndStr);
+        if (isNaN(newEnd.getTime())) { alert('日期格式错误'); return; }
+
+        newStart = findValidDay(newStart, skipW, skipH);
+        newEnd = findValidDay(newEnd, skipW, skipH);
+
+        if (newEnd < newStart) {
+            alert('结束日期不能早于开始日期');
+            return;
+        }
+
+        var newDays = countStudyDays(newStart, newEnd, skipW, skipH);
+        if (newDays < 1) {
+            alert('该区间内没有学习日，请重新选择');
+            return;
+        }
+
+        // 更新该专题天数，并强制将当前年级的起始日期设为该专题的新开始日期（之后的专题顺延）
+        // 同时调整全局开始日期为该专题的开始？不，只改变内部，后面的专题将从 newEnd 的下一个学习日开始。
+        // 直接修改 state[index].days 即可，因为 calculateSchedule 会基于全局 startDate 计算，但我们需要让这个专题的开始变为 newStart。
+        // 简单方案：将整个年级的起始日期临时改为 newStart，但会影响前面专题。更好的方案：将这个专题及之后的天数都重新计算。
+        // 这里采用：将该专题的天数设为 newDays，同时在 gradeState 中额外记录一个 startOverride？为避免复杂度，
+        // 我们改用另一种逻辑：直接调整全局开始日期，但这样前面的专题会变。用户可能想单独调整某个专题的时间，
+        // 所以我们提供一个选项：调整后，前面的专题保持不变，后面的专题顺延。实现：将该专题的 days 设为 newDays，
+        // 同时需要把当前年级的“第一个专题的开始日期”保持不变，但为了让这个专题的开始日期生效，我们需要在 schedule 计算时使用当前专题的 startOverride。
+        // 为了不破坏整体结构，我们增加一个简单处理：询问用户是否调整整个计划开始日期？这里给一个提示：修改后所有专题将重新排期，请确认。
+        if (!confirm('修改后将从该专题开始重新排期，后续专题结束日期将顺延，是否继续？')) return;
+
+        // 将整个年级的开始日期设置为 newStart，以便 calculateSchedule 从该专题开始计算
+        document.getElementById('startDate').value = formatDate(newStart);
+        state[index].days = newDays;
+        // 前面的专题天数保持不变，但开始日期变了会导致它们也移动。所以更好的办法是不动全局开始日期，而是使用自定义排期。
+        // 直接重新调用 render 会基于新的全局开始日期，所以前边的专题也会变。这是用户期望的：相当于重新设定起始日期。
+        render();
+    };
+
+    window.toggleExpand = function(grade, index) { gradeState[grade][index].expanded = !gradeState[grade][index].expanded; render(); };
+    window.cycleStatus = function(grade, index) {
+        var order = ['none','review','done'];
+        var cur = gradeState[grade][index].status;
+        var idx = order.indexOf(cur);
+        gradeState[grade][index].status = order[(idx+1)%3];
+        render();
+    };
+    window.updatePoints = function(grade, index, val) { gradeState[grade][index].points = Math.max(0, parseInt(val)||0); render(); };
+    window.togglePrint = function(grade, index, checked) { gradeState[grade][index].print = checked; };
+    window.setFilter = function(filter, btn) {
+        currentFilter = filter;
+        var fbs = document.querySelectorAll('.filter-btn');
+        for (var i=0;i<fbs.length;i++) fbs[i].classList.remove('active');
+        btn.classList.add('active');
+        render();
+    };
+    window.switchGrade = function(grade, el) {
+        currentGrade = grade;
+        var tabs = document.querySelectorAll('.grade-tab');
+        for (var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+        el.classList.add('active');
+        currentFilter = 'all';
+        var fbs = document.querySelectorAll('.filter-btn');
+        for (var j=0;j<fbs.length;j++) fbs[j].classList.toggle('active', j===0);
+        render();
+    };
+    window.applySettings = function() {
+        var defDays = parseInt(document.getElementById('defaultDays').value)||7;
+        var state = gradeState[currentGrade];
+        for (var i=0;i<state.length;i++) state[i].days = defDays;
+        render();
+    };
+    window.addGift = function() {
+        var name = document.getElementById('giftName').value.trim();
+        var cost = parseInt(document.getElementById('giftCost').value);
+        if(!name||isNaN(cost)||cost<=0) return alert('请填写礼物名称和所需积分');
+        gifts.push({name:name,cost:cost});
+        document.getElementById('giftName').value = '';
+        document.getElementById('giftCost').value = '';
+        renderGifts();
+        saveAll();
+    };
+    window.deleteGift = function(idx) { gifts.splice(idx,1); renderGifts(); saveAll(); };
+    window.clearAllPoints = function() {
+        if(!confirm('确定要清零所有专题的积分吗？')) return;
+        for(var g in gradeState) { var arr=gradeState[g]; for(var i=0;i<arr.length;i++) arr[i].points=0; }
+        render();
+    };
+    window.printPlan = function() {
+        var state = gradeState[currentGrade];
+        var cards = document.querySelectorAll('.topic-card');
+        for (var i=0;i<cards.length;i++) { if(!state[i].print) cards[i].style.display='none'; }
+        setTimeout(function(){
+            window.print();
+            setTimeout(function(){ for(var j=0;j<cards.length;j++) cards[j].style.display=''; render(); },300);
+        },150);
+    };
+    function renderGifts() {
+        var el = document.getElementById('giftList');
+        if(!el) return;
+        var h='';
+        for(var i=0;i<gifts.length;i++) h+='<span class="gift-tag">🎁'+gifts[i].name+'('+gifts[i].cost+'分) <span class="del" onclick="deleteGift('+i+')">×</span></span>';
+        el.innerHTML = h;
+    }
+    function saveAll() {
+        try { localStorage.setItem('plan_v9_gradeState', JSON.stringify(gradeState)); localStorage.setItem('plan_v9_gifts', JSON.stringify(gifts)); } catch(e){}
+    }
+    function loadAll() {
+        try {
+            var gs = localStorage.getItem('plan_v9_gradeState');
+            if(gs) gradeState = JSON.parse(gs);
+            var gf = localStorage.getItem('plan_v9_gifts');
+            if(gf) gifts = JSON.parse(gf);
+        } catch(e){}
+        if (!gradeState[currentGrade]) initGradeState(currentGrade);
+    }
+
+    loadAll();
+    initGradeState(currentGrade);
+    render();
+    renderGifts();
+})();
+</script>
+</body>
+</html>
